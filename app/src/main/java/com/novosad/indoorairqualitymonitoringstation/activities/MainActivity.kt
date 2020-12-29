@@ -15,6 +15,7 @@ import com.novosad.indoorairqualitymonitoringstation.drivers.Ccs811
 import com.novosad.indoorairqualitymonitoringstation.drivers.Sds011
 import com.novosad.indoorairqualitymonitoringstation.fragments.InfoDialogFragment
 import com.novosad.indoorairqualitymonitoringstation.models.SensorData
+
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.IOException
 
@@ -36,9 +37,9 @@ private const val PRIVATE_MODE = Context.MODE_PRIVATE
  */
 class MainActivity : FragmentActivity() {
 
-    private val mBmx280 = Bmx280(Constants.BMX280_PORT)
+    //private val mBmx280 = Bmx280(Constants.BMX280_PORT)
     private val mCcs811 = Ccs811(Constants.CCS811_PORT)
-    private val mSds011 = Sds011(Constants.SDS011_PORT)
+    //private val mSds011 = Sds011(Constants.SDS011_PORT)
 
     private var mInterval = Constants.UPDATE_INTERVAL_EXTRA_SHORT
 
@@ -93,6 +94,9 @@ class MainActivity : FragmentActivity() {
                 .addToBackStack(null)
                 .commit()
         }
+
+        val flowable = listOf(1, 1, 2, 3).toFlowable()
+        flowable.buffer(2).test().assertValues(listOf(1, 1), listOf(2, 3))
     }
 
     override fun onDestroy() {
@@ -105,12 +109,12 @@ class MainActivity : FragmentActivity() {
     private fun initializeSensors() {
         try {
             // Configure driver settings
-            mBmx280.temperatureOversampling = Bmx280.OVERSAMPLING_1X
-            mBmx280.humidityOversampling = Bmx280.OVERSAMPLING_1X
-            mBmx280.pressureOversampling = Bmx280.OVERSAMPLING_1X
+//            mBmx280.temperatureOversampling = Bmx280.OVERSAMPLING_1X
+//            mBmx280.humidityOversampling = Bmx280.OVERSAMPLING_1X
+//            mBmx280.pressureOversampling = Bmx280.OVERSAMPLING_1X
             // Ensure the sensor is powered and not sleeping before trying to read from it
-            mBmx280.setMode(Bmx280.MODE_NORMAL)
-            mSds011.setMode(Sds011.MODE_REPORT)
+//            mBmx280.setMode(Bmx280.MODE_NORMAL)
+            //mSds011.setMode(Sds011.MODE_REPORT)
             mCcs811.setMode(Ccs811.MODE_1S)
         } catch (e: IOException) {
             // couldn't configure the device...
@@ -122,9 +126,9 @@ class MainActivity : FragmentActivity() {
         val sensorData = SensorData()
 
         try {
-            sensorData.temperature = correctTemperature(mBmx280.readTemperature())
-            sensorData.humidity = mBmx280.readHumidity()
-            sensorData.pressure = mBmx280.readPressure()
+            sensorData.temperature = 10.0F //correctTemperature(mBmx280.readTemperature())
+            sensorData.humidity = 0.0F //mBmx280.readHumidity()
+            sensorData.pressure = 0.0F //mBmx280.readPressure()
         } catch (e: IOException) {
             Log.e(TAG, "Error reading temperature/humidity/pressure")
         }
@@ -132,15 +136,15 @@ class MainActivity : FragmentActivity() {
         try {
             val ccs811Results = mCcs811.readAlgorithmResults().clone()
             sensorData.co2 = ccs811Results[0]
-            sensorData.tvoc = ccs811Results[1]
+            sensorData.tvoc = 10//ccs811Results[1]
         } catch (e: IOException) {
             Log.e(TAG, "Error reading co2/tvoc")
         }
 
         // sds011 will not throw an exception because the sensor decides when the data is available
         // if the sensor becomes disconnected, it will simply not provide any data
-        sensorData.pm25 = mSds011.readPM()[0]
-        sensorData.pm10 = mSds011.readPM()[1]
+        sensorData.pm25 = 10.0F//mSds011.readPM()[0]
+        sensorData.pm10 = 10.0F//mSds011.readPM()[1]
 
         return sensorData
     }
@@ -292,23 +296,23 @@ class MainActivity : FragmentActivity() {
         when (id) {
             0 -> {
                 mInterval = Constants.UPDATE_INTERVAL_EXTRA_SHORT
-                mSds011.setMode(Sds011.MODE_CONTINUOUS)
+                //mSds011.setMode(Sds011.MODE_CONTINUOUS)
             }
             1 -> {
                 mInterval = Constants.UPDATE_INTERVAL_SHORT
-                mSds011.setMode(Sds011.MODE_CONTINUOUS)
+                //mSds011.setMode(Sds011.MODE_CONTINUOUS)
             }
             2 -> {
                 mInterval = Constants.UPDATE_INTERVAL_MEDIUM
-                mSds011.setMode(Sds011.MODE_CONTINUOUS)
+                //mSds011.setMode(Sds011.MODE_CONTINUOUS)
             }
             3 -> {
                 mInterval = Constants.UPDATE_INTERVAL_LONG
-                mSds011.setMode(Sds011.MODE_1MIN)
+                //mSds011.setMode(Sds011.MODE_1MIN)
             }
             4 -> {
                 mInterval = Constants.UPDATE_INTERVAL_EXTRA_LONG
-                mSds011.setMode(Sds011.MODE_1MIN)
+                //mSds011.setMode(Sds011.MODE_1MIN)
             }
         }
     }
@@ -316,9 +320,9 @@ class MainActivity : FragmentActivity() {
     private fun closeSensors() {
         // Close the environmental sensors when finished
         try {
-            mBmx280.close()
+//            mBmx280.close()
             mCcs811.close()
-            mSds011.close()
+//            mSds011.close()
         } catch (e: IOException) {
             Log.e(TAG, "Error closing the sensors")
         }
